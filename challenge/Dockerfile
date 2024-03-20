@@ -25,6 +25,7 @@ ARG INSTALL_GDB=${DEFAULT_INSTALL_SELECTION}
 ARG INSTALL_TOOLS_PIP=${DEFAULT_INSTALL_SELECTION}
 ARG INSTALL_TOOLS_APT=${DEFAULT_INSTALL_SELECTION}
 ARG INSTALL_WINDOWS=${DEFAULT_INSTALL_SELECTION}
+ARG INSTALL_FORENSICS=${DEFAULT_INSTALL_SELECTION}
 
 FROM ubuntu:${UBUNTU_VERSION} as essentials
 
@@ -399,6 +400,19 @@ COPY desktop/pwncollege_background.jpg /usr/share/backgrounds/
 RUN rm /etc/xdg/autostart/*
 
 FROM builder-desktop-xfce-${INSTALL_XFCE} as builder-desktop-xfce
+
+FROM builder-desktop-xfce-no as builder-forensics-no
+FROM builder-desktop-xfce-yes as builder-forensics-yes
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && xargs apt-get install --no-install-recommends -yqq <<EOF && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+      sleuthkit
+      volatility
+      autopsy
+EOF
+
+FROM builder-forensics-${INSTALL_FORENSICS} as builder-forensics
 
 ################################################################################
 
@@ -795,9 +809,25 @@ COPY --link --from=builder-windows / /
 
 ################################################################################
 
+FROM challenge-granular as challenge-forensics
+COPY --link --from=builder-essentials / /
+COPY --link --from=builder / /
+COPY --link --from=builder-kernel-yes /opt/linux /opt/linux
+COPY --link --from=builder-tcpdump-yes / /
+COPY --link --from=builder-burpsuite-yes / /
+COPY --link --from=builder-busybox-yes / /
+COPY --link --from=builder-desktop-xfce-yes / /
+COPY --link --from=builder-virtiofsd-yes /opt/virtiofsd /opt/virtiofsd
+COPY --link --from=builder-gdb-yes / /
+COPY --link --from=builder-tools-pip-yes / /
+COPY --link --from=builder-tools-apt-yes / /
+COPY --link --from=builder-forensics-yes / /
+COPY dataset.csv /challenge
+COPY desktop/memasu_background.png /usr/share/backgrounds/
+
 # legacy
 FROM challenge-mini as challenge-minimal
-FROM challenge-full as challenge
+FROM challenge-forensics as challenge
 
 ################################################################################
 
