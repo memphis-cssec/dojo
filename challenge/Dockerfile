@@ -823,7 +823,7 @@ COPY --link --from=builder-tools-pip-yes / /
 COPY --link --from=builder-tools-apt-yes / /
 COPY --link --from=builder-forensics-yes / /
 COPY dataset.csv /challenge
-COPY desktop/memasu_background.png /usr/share/backgrounds/
+COPY desktop/Tiger_Background.png /usr/share/backgrounds/
 
 # legacy
 FROM challenge-mini as challenge-minimal
