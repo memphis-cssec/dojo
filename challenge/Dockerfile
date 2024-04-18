@@ -408,8 +408,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && xargs apt-get install --no-install-recommends -yqq <<EOF && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
       sleuthkit
-      volatility
+      python3-pip
       autopsy
+      ext4magic
+      forensics-all
 EOF
 
 FROM builder-forensics-${INSTALL_FORENSICS} as builder-forensics
@@ -817,12 +819,14 @@ COPY --link --from=builder-tcpdump-yes / /
 COPY --link --from=builder-burpsuite-yes / /
 COPY --link --from=builder-busybox-yes / /
 COPY --link --from=builder-desktop-xfce-yes / /
+COPY --link --from=builder-desktop-ghidra-yes / /
 COPY --link --from=builder-virtiofsd-yes /opt/virtiofsd /opt/virtiofsd
 COPY --link --from=builder-gdb-yes / /
 COPY --link --from=builder-tools-pip-yes / /
 COPY --link --from=builder-tools-apt-yes / /
 COPY --link --from=builder-forensics-yes / /
 COPY dataset.csv /challenge
+COPY raven.dd /challenge
 COPY desktop/Tiger_Background.png /usr/share/backgrounds/
 
 # legacy
